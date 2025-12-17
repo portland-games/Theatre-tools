@@ -151,3 +151,6 @@ video-tools/downloads/
 
 # Ignore the output folder in video-tools
 video-tools/output/
+
+# Ignore the output folder in window-video-maker
+window-video-maker/output/
