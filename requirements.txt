@@ -1,0 +1,2 @@
+tkVideoPlayer==2.8
+yt-dlp
