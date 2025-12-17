@@ -32,7 +32,7 @@ def run_command(command):
     """Run a shell command and capture output."""
     try:
         log_message(f"Running command: {command}")
-        output_dir = os.path.join(os.getcwd(), "video-tools", "output")
+        output_dir = os.path.join(os.getcwd(), "output")
         os.makedirs(output_dir, exist_ok=True)
 
         # Run the command with a timeout to prevent hanging
@@ -103,19 +103,27 @@ def update_preview(file_path):
     # Ensure persistent storage of PhotoImage objects
     frame_images = []  # List to store references to PhotoImage objects
 
-    # Update the UI with the new frames and add labels for frame times
+    # Clear the frame labels and remove any existing labels from the UI
+    for label in frame_labels:
+        label.destroy()
+    frame_labels.clear()
+
+    # Recreate the frame labels
     for i in range(3):
+        tab = notebook.nametowidget(notebook.tabs()[i])
+        label = tk.Label(tab, text=f"Frame {i + 1}", width=200, height=200, bg="gray")
+        label.place(x=0, y=0, anchor="nw")
+        frame_labels.append(label)
+
+    # Update the recreated labels with new preview images
+    for i, label in enumerate(frame_labels):
         frame_path = os.path.join(frames_dir, f"frame_{i + 1}.png")
         if os.path.exists(frame_path):
             frame_image = tk.PhotoImage(file=frame_path)
-            frame_labels[i].config(image=frame_image, width=150, height=150)
-            frame_labels[i].image = frame_image
-
-            # Add a label below the frame to indicate the timestamp
-            frame_time_label = tk.Label(frame_labels[i].master, text=f"Frame at {random_times[i]:.2f}s")
-            frame_time_label.pack()
-
-            frame_images.append(frame_image)  # Store reference to prevent garbage collection
+            label.config(image=frame_image, width=150, height=150, bg="white")
+            label.image = frame_image  # Keep a reference to avoid garbage collection
+        else:
+            label.config(image="", text=f"Frame {i + 1} (Not Found)", bg="gray")
 
 def convert_video():
     """Convert video to a selected format."""
@@ -184,14 +192,13 @@ def download_video():
         os.makedirs(downloads_dir, exist_ok=True)
         log_message("Created downloads directory.")
 
-    # Run yt-dlp -F to list formats
-    list_formats_command = f"yt-dlp -F \"{url}\""
-    log_message("Listing available formats...")
-    run_command(list_formats_command)
-
-    # Include the selected format in the download command
+    # Build the yt-dlp command
     selected_format = ytdlp_format.get()
-    command = f"yt-dlp -f {selected_format} -o \"{downloads_dir}/%(title)s.%(ext)s\" \"{url}\""
+    if selected_format:
+        command = f"yt-dlp -f {selected_format} -o \"{downloads_dir}/%(title)s.%(ext)s\" \"{url}\""
+    else:
+        command = f"yt-dlp -o \"{downloads_dir}/%(title)s.%(ext)s\" \"{url}\""
+
     log_message(f"yt-dlp command: {command}")
 
     def download():
@@ -368,6 +375,10 @@ query_button.pack(side="left", padx=5)
 stop_button = tk.Button(download_frame, text="Stop Download", command=stop_download, state="disabled")
 stop_button.pack(side="left", padx=5)
 
+# Add a text field for specifying the format
+ytdlp_format_field = tk.Entry(left_frame, textvariable=ytdlp_format, width=20)
+ytdlp_format_field.pack(anchor="w", padx=10, pady=5)
+
 # Right Frame Widgets
 preview_label = tk.Label(right_frame, text="Preview: None", wraplength=300)
 preview_label.pack(anchor="center", pady=20)
@@ -375,6 +386,10 @@ preview_label.pack(anchor="center", pady=20)
 # Add a Play button for the video preview
 play_button = tk.Button(right_frame, text="Play Video", state="disabled")
 play_button.pack(anchor="center", pady=10)
+
+# Add a button to recreate preview images
+recreate_previews_button = tk.Button(right_frame, text="Recreate Previews", command=lambda: update_preview(selected_file.get()))
+recreate_previews_button.pack(anchor="center", pady=10)
 
 # Bind the play_selected_video function to the Play button
 play_button.config(command=play_selected_video)
