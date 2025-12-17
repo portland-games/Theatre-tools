@@ -33,3 +33,15 @@ pip install -r requirements.txt
 ### VLC update cache
 
 "C:\Program Files\VideoLAN\VLC\vlc-cache-gen.exe" "C:\Program Files\VideoLAN\VLC\plugins"
+
+## Credits
+
+Created by Neil Highley 
+Created to help with various technical maintenance and marketing for the Royal Manor Theatre on Portland, Dorset.
+
+Feel free to use all of these scripts for whatever you need.
+
+## tags
+
+Theatre-tools
+Video tools for theatre
